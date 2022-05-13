@@ -5,7 +5,7 @@ require "octokit"
 allowed_conclusions = ENV["ALLOWED_CONCLUSIONS"]
 check_name = ENV["CHECK_NAME"]
 check_regexp = ENV["CHECK_REGEXP"]
-ref = ENV["REF"]
+ref = ENV["REF"] || ENV["GITHUB_SHA"]
 token = ENV["REPO_TOKEN"]
 verbose = ENV["VERBOSE"]
 wait = ENV["WAIT_INTERVAL"]
@@ -20,6 +20,7 @@ GithubChecksVerifier.configure do |config|
   config.repo = ENV["GITHUB_REPOSITORY"]
   config.verbose = verbose
   config.wait = wait.to_i
+  config.timeout = ENV["TIMEOUT"].to_i
   config.workflow_name = workflow_name
 end
 

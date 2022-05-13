@@ -10,8 +10,9 @@ require "octokit"
 
 class GithubChecksVerifier < ApplicationService
   include ActiveSupport::Configurable
-  config_accessor :check_name, :workflow_name, :client, :repo, :ref
+  config_accessor :check_name, :workflow_name, :client, :repo, :ref, :timeout
   config_accessor(:wait) { 30 } # set a default
+  config_accessor(:timeout) { 10 } # set a default
   config_accessor(:check_regexp) { "" }
   config_accessor(:allowed_conclusions) { ["success", "skipped"] }
   config_accessor(:verbose) { true }
@@ -92,10 +93,12 @@ class GithubChecksVerifier < ApplicationService
 
   def wait_for_checks
     all_checks = query_check_status
+    start_time = Time.now
+    end_time = start_time + timeout
 
     fail_if_requested_check_never_run(all_checks)
 
-    until all_checks_complete(all_checks)
+    until all_checks_complete(all_checks) || Time.now > end_time
       plural_part = all_checks.length > 1 ? "checks aren't" : "check isn't"
       puts "The requested #{plural_part} complete yet, will check back in #{wait} seconds..."
       sleep(wait)
